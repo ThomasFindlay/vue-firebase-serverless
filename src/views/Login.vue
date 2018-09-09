@@ -1,58 +1,58 @@
 <template>
-  <div class="login">
-    <h1>This is a login page</h1>
-
-    <form class="form">
-      <div class="form-section">
-        <label>Login</label>
-        <input type="text" name="email" />
-      </div>
-      <div class="form-section">
-        <label>Password</label>
-        <input type="password" name="password" />
-      </div>
-      <div class="form-submit--container">
-        <input class="submit-btn" type="submit" value="Submit" />
-      </div>
-    </form>
+  <div class="Login">
+    <h1>Login</h1>
+    <p>Please fill in the form</p>
+    <FormContainer>
+      <BaseInput v-model="email" label="Email" name="email" type="email" />
+      <BaseInput v-model="password" label="Password" name="password" type="password" />
+      <p style="color: red;" v-if="error">{{this.error}}</p>
+      <BaseBtn @click="loginUser" :text="loggingIn ? 'Logging in...' : 'Submit'" type="submit" />
+    </FormContainer>
   </div>
 </template>
-<style lang="scss" scoped>
-.form {
-  width: 450px;
-  margin: 0 auto;
-  box-shadow: 1px 1px 5px #333;
-  padding: 20px 40px;
-}
+<script>
+import FormContainer from '@/components/FormContainer';
+import firebase from 'firebase/app';
+import { firestoreDb } from '@/firebase';
 
-.form-section {
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
-  flex-wrap: wrap;
+export default {
+  name: 'Login',
+  data() {
+    return {
+      email: '',
+      password: '',
+      loggingIn: false,
+      error: ''
+    };
+  },
+  methods: {
+    async loginUser(e) {
+      e.preventDefault();
+      try {
+        // Set the loader on and clear the error
+        this.loggingIn = true;
+        this.error = '';
 
-  &:not(:last-child) {
-    margin-bottom: 1rem;
+        // Set user logging to be persistent
+        firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+        // Login user
+        const user = await firebase
+          .auth()
+          .signInWithEmailAndPassword(this.email, this.password);
+
+        this.$router.push('/');
+      } catch (err) {
+        console.error(err);
+        this.error = err.message;
+      } finally {
+        this.loggingIn = false;
+      }
+    }
+  },
+  components: {
+    FormContainer
   }
-
-  label {
-    display: block;
-    width: 20%;
-    text-align: left;
-    font-weight: 600;
-  }
-
-  input {
-    flex-grow: 1;
-    display: block;
-    padding: 4px;
-    border-radius: 3px;
-    border: 1px solid #333;
-  }
-}
-
-.form-submit--container {
-  display: flex;
-  justify-content: flex-end;
-}
+};
+</script>
+<style scoped>
 </style>
